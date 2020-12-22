@@ -1,0 +1,11 @@
+server:
+  port: 12000
+spring:
+  application:
+    name: pms-report
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/pms_report?characterEncoding=utf-8&serverTimezone=UTC&useSSL=true
+    username: root
+    password: sun0510
+

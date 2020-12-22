@@ -1,0 +1,264 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="stylesheet" href="./css/elementui(1).css">
+</head>
+<script src="./js/vue.js"></script>
+<script src="./js/elementui.js"></script>
+<script src="./js/axios.js"></script>
+<style>
+    .el-header, .el-footer {
+        background-color: #409EFF;
+        color: #333;
+        text-align: center;
+        line-height: 80px;
+    }
+
+    .el-aside {
+        background-color: #cce1e6;
+        color: #333;
+        text-align: center;
+        line-height: 200px;
+    }
+
+    .el-main {
+        background-color: #E9EEF3;
+        color: #333;
+        text-align: center;
+
+    }
+
+    body > .el-container {
+        margin-bottom: 40px;
+    }
+
+    .el-container:nth-child(5) .el-aside,
+    .el-container:nth-child(6) .el-aside {
+        line-height: 100%;
+    }
+
+    .el-container:nth-child(7) .el-aside {
+        line-height: 320px;
+    }
+</style>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>AMHS科自动化设备报表系统</el-header>
+            <el-container>
+                <el-aside width="100px">
+                    <i class="el-icon-share">百度</i>
+                    <!--<el-link href="https://www.baidu.com" target="_blank">默认链接</el-link>-->
+                </el-aside>
+                <el-container>
+                    <el-main >
+                        <!--搜索表单-->
+                        <el-form :inline="true" :model="whereMap" style="height: 80px" >
+                            <el-form-item >
+                                <el-input v-model="whereMap.device" placeholder="设备ID"></el-input>
+                            </el-form-item>
+                            <el-form-item  >
+                                <el-select v-model="whereMap.type" placeholder="设备生产商">
+                                    <el-option label="SFA" value="SFA"></el-option>
+                                    <el-option label="新盛" value="SSFA"></el-option>
+                                    <el-option label="大福" value="DFK"></el-option>
+                                    <el-option label="第一施设" value="DAIICHI"></el-option>
+                                    <el-option label="商巨" value="SUNCO"></el-option>
+                                </el-select>
+                            </el-form-item>
+
+                            <el-form-item  >
+                                <el-date-picker type="datetime" value-format = 'yyyy-MM-dd HH:mm' placeholder="开始" v-model="whereMap.start_time" style="width: 100%;"></el-date-picker>
+                            </el-form-item>
+                            <el-form-item  style="height: 60px">
+                                <el-date-picker type="datetime" value-format = 'yyyy-MM-dd HH:mm' placeholder="结束" v-model="whereMap.end_time" style="width: 100%;"></el-date-picker>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="searchData">查询</el-button>
+                                <el-button type="primary" @click="openDailog">新增</el-button>
+                            </el-form-item>
+                        </el-form>
+
+                        <el-table
+                                :data="tableData"
+                                height="500"
+                                row-style="height:40px"
+                                style="width: 100%"
+                                :default-sort = "{prop: 'date', order: 'descending'}">
+
+                            <!--<el-table-column fixed prop="id" label="ID" width="60">
+                            </el-table-column>-->
+                            <!--<el-table-column type="selection" width="55" >
+                            </el-table-column>-->
+                            <el-table-column fixed prop="device" label="设备ID" width="80" >
+                            </el-table-column>
+                            <el-table-column prop="error_code" label="报警代码" width="80">
+                            </el-table-column>
+                            <el-table-column prop="error_detail" label="报警信息" width="180">
+                            </el-table-column>
+                            <el-table-column prop="error_count" label="报警次数" width="80">
+                            </el-table-column>
+                            <el-table-column sortable prop="start_time" label="开始时间" width="110">
+                            </el-table-column>
+                            <el-table-column prop="end_time" label="结束时间" width="110">
+                            </el-table-column>
+                            <el-table-column prop="error_desc" label="故障描述" width="180">
+                            </el-table-column>
+                            <el-table-column prop="process" label="处理方式" width="180">
+                            </el-table-column>
+                            <el-table-column prop="person" label="处理人" width="80">
+                            </el-table-column>
+                            <el-table-column prop="improvement" label="改善对策" width="120">
+                            </el-table-column>
+                            <el-table-column prop="type" label="设备厂商" width="80">
+                            </el-table-column>
+                            </el-table-column>
+                            <el-table-column fixed="right" label="操作" width="140">
+                                <template slot-scope="scope">
+                                    <el-button
+                                            type="text"
+                                            @click="edit(scope.row.id)" class="el-icon-edit">编辑</el-button>
+                                    <el-popconfirm title="确认删除？" @@onConfirm="deleteOne(scope.row.id)">
+                                    <el-button
+                                            slot="reference"
+                                            type="text"
+                                            class="el-icon-delete">删除</el-button>
+                                    </el-popconfirm>
+                                </template>
+                            </el-table-column>
+
+                        </el-table>
+                        <el-pagination
+                                @size-change="fetchData"
+                                @current-change="fetchData"
+                                :current-page.sync="currentPage"
+                                :page-size="size"
+                                layout="total, prev, pager, next, jumper"
+                                :total="total"
+                                ><!--style="height: 80px"-->
+                        </el-pagination>
+                    </el-main>
+                    <!--<el-footer>Footer</el-footer>-->
+                </el-container>
+            </el-container>
+        </el-container>
+
+        <!--新增或编辑的弹出表单-->
+        <!--<el-button type="text" v-model="dialogFormVisible"></el-button>-->
+
+        <el-dialog title="新增机况" :visible.sync="dialogFormVisible">
+            <el-form :model="deviceIssue" label-width="120px">
+                <el-form-item label="设备ID" >
+                    <el-input v-model="deviceIssue.device" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="设备厂商" >
+                    <el-select v-model="deviceIssue.type" placeholder="设备厂商">
+                        <el-option label="大福" value="DFK"></el-option>
+                        <el-option label="SFA" value="SFA"></el-option>
+                        <el-option label="新盛" value="SSFA"></el-option>
+                        <el-option label="第一施设" value="DAIICHI"></el-option>
+                        <el-option label="商巨" value="SUNCO"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="报警代码" >
+                    <el-input v-model="deviceIssue.error_code" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="报警信息" >
+                    <el-input v-model="deviceIssue.error_detail" autocomplete="off"></el-input>
+                </el-form-item>
+                <!--<el-form-item label="累计次数" :label-width="formLabelWidth">
+                    <el-input v-model="deviceIssue.error_count" autocomplete="off"></el-input>
+                </el-form-item>-->
+                <el-form-item label="宕机时间">
+                    <el-date-picker type="datetime" value-format = 'yyyy-MM-dd HH:mm' placeholder="选择时间" v-model="deviceIssue.start_time" style="width: 100%;"></el-date-picker>
+                </el-form-item>
+                <el-form-item label="复机时间">
+                    <el-date-picker type="datetime" value-format = 'yyyy-MM-dd HH:mm' placeholder="选择时间" v-model="deviceIssue.end_time" style="width: 100%;"></el-date-picker>
+                </el-form-item>
+                <el-form-item label="故障描述" >
+                    <el-input v-model="deviceIssue.error_desc" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="处理方式" >
+                    <el-input v-model="deviceIssue.process" autocomplete="off"></el-input>
+                </el-form-item>
+
+                <el-form-item label="处理人">
+                    <el-input v-model="deviceIssue.person" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="改善对策" >
+                    <el-input v-model="deviceIssue.improvement" autocomplete="off"></el-input>
+                </el-form-item>
+
+
+
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="add()">确 定</el-button>
+            </div>
+        </el-dialog>
+
+    </div>
+</body>
+<script>
+    new Vue({
+        el: "#app",
+        data(){
+            return{
+                tableData:[],
+                currentPage:1,
+                size:20,
+                total:10,
+                whereMap:{},
+                dialogFormVisible:false,
+                deviceIssue:{}
+
+            }
+        },
+        created(){
+            this.fetchData()
+        },
+        methods:{
+            fetchData(){
+                axios.get(`/deviceIssue/findPage?page=${this.currentPage}&rows=${this.size}`).then(res=>{
+                    this.tableData=res.data.items;
+                    this.total=res.data.count;
+                })
+            },
+            searchData(){
+                axios.post(`/deviceIssue/search?page=${this.currentPage}&rows=${this.size}`,this.whereMap).then(res=>{
+                    this.tableData=res.data.items;
+                    this.total=res.data.count;
+                })
+            },
+            add(){
+                //this.dialogFormVisible=true;
+                this.form=null;
+                axios.post(`/deviceIssue/${this.deviceIssue.id==null?'add':'update'}`,this.deviceIssue).then(res=>{
+                    this.fetchData();
+
+                    this.dialogFormVisible=false;
+                })
+            },
+            edit(id){
+                this.dialogFormVisible=true;
+                axios.post(`/deviceIssue/findOne?id=${id}`,this.deviceIssue).then(res=>{
+                    this.deviceIssue=res.data;
+                })
+            },
+            deleteOne(id){
+                axios.get(`/deviceIssue/deleteOne?id=${id}`).then(res=>{
+                    this.fetchData();
+                })
+            },
+            openDailog(){
+                this.deviceIssue={};
+                this.dialogFormVisible=true;
+
+            }
+        }
+    })
+</script>
+</html>
