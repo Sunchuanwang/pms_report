@@ -61,7 +61,7 @@ public class DeviceIssueController {
 	@RequestMapping(value = "/add",method = RequestMethod.POST)
 	public Result add(@RequestBody DeviceIssue deviceIssue){
 		deviceIssueService.add(deviceIssue);
-		return new Result(ResultCode.SUCCESS);
+		return new Result(true,10002,"添加成功");
 	}
 	
 	/**
@@ -94,7 +94,7 @@ public class DeviceIssueController {
 	public Result delete(Integer [] ids){
 		
 		deviceIssueService.deleteList(ids);
-		return new Result(ResultCode.SUCCESS);
+		return new Result(true,10000,"删除成功");
 		
 	}
 
@@ -102,7 +102,7 @@ public class DeviceIssueController {
     public Result delete(Integer id){
 
         deviceIssueService.delete(id);
-        return new Result(ResultCode.SUCCESS);
+        return new Result(true,10000,"删除成功");
 
     }
 	
@@ -119,6 +119,36 @@ public class DeviceIssueController {
 		Page<DeviceIssue> page_deviceIssue = deviceIssueService.findSearch(whereMap, page, rows);
 		return new PageResult<DeviceIssue>(page_deviceIssue.getTotalElements(), page_deviceIssue.getContent());
 	}
+
+    /**
+     * 昨天的记录
+     */
+    @RequestMapping(value = "/yestoday",method = RequestMethod.GET)
+    public Result yestoday(){
+        return new Result(true,10000,"查询成功",deviceIssueService.yestoday());
+    }
+
+    /**
+     * 本周的记录
+     */
+    @RequestMapping(value = "/thisWeek",method = RequestMethod.GET)
+    public Result thisWeek(){
+        return new Result(true,10000,"查询成功",deviceIssueService.thisWeek());
+    }
+    /**
+     * 上周的记录
+     */
+    @RequestMapping(value = "/preWeek",method = RequestMethod.GET)
+    public Result preWeek(){
+        return new Result(true,10000,"查询成功",deviceIssueService.preWeek());
+    }
+    /**
+     * 本月的记录
+     */
+    @RequestMapping(value = "/thisMonth",method = RequestMethod.GET)
+    public Result thisMonth(){
+        return new Result(true,10000,"查询成功",deviceIssueService.thisMonth());
+    }
 
 
 	

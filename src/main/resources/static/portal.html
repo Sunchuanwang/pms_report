@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>首页</title>
-    <link rel="stylesheet" href="./css/elementui(1).css">
+    <link rel="stylesheet" href="./css/elementui.css">
 </head>
 <script src="./js/vue.js"></script>
 <script src="./js/elementui.js"></script>
@@ -20,7 +20,7 @@
         background-color: #cce1e6;
         color: #333;
         text-align: center;
-        line-height: 200px;
+        line-height: 80px;
     }
 
     .el-main {
@@ -49,8 +49,19 @@
             <el-header>AMHS科自动化设备报表系统</el-header>
             <el-container>
                 <el-aside width="100px">
-                    <i class="el-icon-share">百度</i>
-                    <!--<el-link href="https://www.baidu.com" target="_blank">默认链接</el-link>-->
+                    <el-row>
+                        <el-button type="primary" round @click="yestoday">昨天</el-button>
+                    </el-row>
+                    <el-row>
+                        <el-button type="primary" round @click="thisweek">本周</el-button>
+                    </el-row>
+                    <el-row>
+                        <el-button type="primary" round @click="preweek">上周</el-button>
+                    </el-row>
+                    <el-row>
+                        <el-button type="primary" round @click="thisMonth">本月</el-button>
+                    </el-row>
+
                 </el-aside>
                 <el-container>
                     <el-main >
@@ -59,6 +70,10 @@
                             <el-form-item >
                                 <el-input v-model="whereMap.device" placeholder="设备ID"></el-input>
                             </el-form-item>
+                            <el-form-item >
+                                <el-input v-model="whereMap.error_code" placeholder="报警代码"></el-input>
+                            </el-form-item>
+
                             <el-form-item  >
                                 <el-select v-model="whereMap.type" placeholder="设备生产商">
                                     <el-option label="SFA" value="SFA"></el-option>
@@ -90,8 +105,8 @@
 
                             <!--<el-table-column fixed prop="id" label="ID" width="60">
                             </el-table-column>-->
-                            <!--<el-table-column type="selection" width="55" >
-                            </el-table-column>-->
+                            <el-table-column type="selection" width="55" >
+                            </el-table-column>
                             <el-table-column fixed prop="device" label="设备ID" width="80" >
                             </el-table-column>
                             <el-table-column prop="error_code" label="报警代码" width="80">
@@ -114,18 +129,19 @@
                             </el-table-column>
                             <el-table-column prop="type" label="设备厂商" width="80">
                             </el-table-column>
+                            <el-table-column  label="无" width="80">
+                            </el-table-column>
                             </el-table-column>
                             <el-table-column fixed="right" label="操作" width="140">
                                 <template slot-scope="scope">
                                     <el-button
                                             type="text"
                                             @click="edit(scope.row.id)" class="el-icon-edit">编辑</el-button>
-                                    <el-popconfirm title="确认删除？" @@onConfirm="deleteOne(scope.row.id)">
+
                                     <el-button
                                             slot="reference"
                                             type="text"
-                                            class="el-icon-delete">删除</el-button>
-                                    </el-popconfirm>
+                                            class="el-icon-delete" @click="deleteOne(scope.row.id)">删除</el-button>
                                 </template>
                             </el-table-column>
 
@@ -148,7 +164,7 @@
         <!--新增或编辑的弹出表单-->
         <!--<el-button type="text" v-model="dialogFormVisible"></el-button>-->
 
-        <el-dialog title="新增机况" :visible.sync="dialogFormVisible">
+        <el-dialog title="编辑机况" :visible.sync="dialogFormVisible">
             <el-form :model="deviceIssue" label-width="120px">
                 <el-form-item label="设备ID" >
                     <el-input v-model="deviceIssue.device" autocomplete="off"></el-input>
@@ -196,7 +212,7 @@
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="dialogFormVisible = false">取 消</el-button>
-                <el-button type="primary" @click="add()">确 定</el-button>
+                <el-button type="primary" @click="add()">保 存</el-button>
             </div>
         </el-dialog>
 
@@ -249,8 +265,31 @@
                 })
             },
             deleteOne(id){
-                axios.get(`/deviceIssue/deleteOne?id=${id}`).then(res=>{
-                    this.fetchData();
+                if (confirm("确认删除？")){
+                    axios.get(`/deviceIssue/deleteOne?id=${id}`).then(res=>{
+                        this.fetchData();
+                    })
+                }
+
+            },
+            yestoday(){
+                axios.get(`/deviceIssue/yestoday`).then(res=>{
+                    this.tableData=res.data.item
+                })
+            },
+            thisweek(){
+                axios.get(`/deviceIssue/thisWeek`).then(res=>{
+                    this.tableData=res.data.item
+                })
+            },
+            preweek(){
+                axios.get(`/deviceIssue/preWeek`).then(res=>{
+                    this.tableData=res.data.item
+                })
+            },
+            thismonth(){
+                axios.get(`/deviceIssue/thisMonth`).then(res=>{
+                    this.tableData=res.data.item
                 })
             },
             openDailog(){

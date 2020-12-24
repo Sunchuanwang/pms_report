@@ -17,7 +17,7 @@ public class Result {
         this.message = message;
     }
 
-    public Result(Object item) {
+    public Result(Boolean success, Integer code, String message,Object item) {
         this.success = success;
         this.code = code;
         this.message = message;
